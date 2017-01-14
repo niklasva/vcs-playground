@@ -1,6 +1,6 @@
 ;;;
 ;;; EXAMPLE KERNEL
-;;; CODE PROVIDED BY http://www.randomterrain.com/atari-2600-memories-tutorial-andrew-davie-09.html
+;;; ORIGINAL CODE PROVIDED BY http://www.randomterrain.com/atari-2600-memories-tutorial-andrew-davie-09.html
 ;;; Additional annotations and modifications by me
 ;;;
 
@@ -14,7 +14,6 @@
 
 Reset
 StartOfFrame
-
 
 	; Start of vertical blank processing
 	lda #0
@@ -37,7 +36,6 @@ StartOfFrame
 		sta WSYNC
 	REPEND
 
-
 	; 192 scanlines of picture...
 	ldx #0
 	REPEAT 192
@@ -45,10 +43,6 @@ StartOfFrame
 		stx COLUBK	; ...to change the color of the current horizontal line
 		sta WSYNC
 	REPEND
-
-
-
-
 
 	lda #%01000010
 
@@ -62,7 +56,6 @@ StartOfFrame
 	jmp StartOfFrame
 
 	ORG $FFFA
-
 
 	.word Reset          ; NMI
 	.word Reset          ; RESET
