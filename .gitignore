@@ -4,3 +4,4 @@
 *.lst
 *.sym
 *.cpgz
+src/*.h
