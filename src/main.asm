@@ -1,4 +1,3 @@
-
 ;;	Assemblerinstruktioner.
 ;;	Först och främst måste vi berätta för assemblern 
 ;;	att vi programmerar mot 6502 och att vi vill hämta
