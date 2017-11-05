@@ -32,10 +32,10 @@ VERSION_VCS         = 105
 ;                       which was broken by the use of segments in this file, as
 ;                       reported by Manuel Polik on [stella] 11/MAY/2003
 ; 1.02  22/MAR/2003     Added TIMINT($285)
-; 1.01	        		Constant offset added to allow use for 3F-style bankswitching
-;						 - define TIA_BASE_ADDRESS as $40 for Tigervision carts, otherwise
-;						   it is safe to leave it undefined, and the base address will
-;						   be set to 0.  Thanks to Eckhard Stolberg for the suggestion.
+; 1.01	        	Constant offset added to allow use for 3F-style bankswitching
+;			- define TIA_BASE_ADDRESS as $40 for Tigervision carts, otherwise
+;			   it is safe to leave it undefined, and the base address will
+;			   be set to 0.  Thanks to Eckhard Stolberg for the suggestion.
 ;                          Note, may use -DLABEL=EXPRESSION to define TIA_BASE_ADDRESS
 ;                        - register definitions are now generated through assignment
 ;                          in uninitialised segments.  This allows a changeable base
