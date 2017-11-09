@@ -6,39 +6,39 @@
     processor 6502
     include "vcs.h"
 
-    ORG $F000	; Startadress
+    ORG $F000   ; Startadress
 
 ; Bra jobbat. Nu börjar koden som körs på processorn.
 
 
 ;; ---- VARIABLER ---- ;;
-ypos = $80;					; Punktens vertikala position räknat från botten
-missile_height = $81		; av skärmen.
+ypos = $80;                 ; Punktens vertikala position räknat från botten
+missile_height = $81        ; av skärmen.
 
 
 Start:
-    SEI         	; Set interrupt disable
-    CLD         	; Clear decimal mode
+    SEI                     ; Set interrupt disable
+    CLD                     ; Clear decimal mode
 
 ; Nollställ stackpekaren:
 
-    LDX #$FF    	; Fyll register X med 0xFF.
-    TXS         	; Sätt stackpekaren till värdet i X.
+    LDX #$FF                ; Fyll register X med 0xFF.
+    TXS                     ; Sätt stackpekaren till värdet i X.
 
 ; Nollställ resten av minnet:
 
     LDA #0
 
 ClearMem:
-    STA 0,X    		; Skriv det som är i register A till minnesplats 0 + X
-    DEX				; (kom ihåg att vi satte X till FF förut)
+    STA 0,X                 ; Skriv det som är i register A till minnesplats
+    DEX                     ; 0 + X (kom ihåg att vi satte X till FF förut)
     BNE ClearMem
 
 ; Okej. Kul. Nu kan vi prova att göra lite mer grafiska operationer.
 ; Sätt bakgrunden till färgen 0x00 (svart)
 
-    LDA #$00		; Ladda in färgen i A
-    STA COLUBK		; Skriv värdet i A till bakgrundsfärgregistret
+    LDA #$00                ; Ladda in färgen i A
+    STA COLUBK              ; Skriv värdet i A till bakgrundsfärgregistret
 
 ; Samma med spelare 0 men färg 33
 
@@ -46,11 +46,11 @@ ClearMem:
     STA COLUP0
 
 Init:
-	LDA #80
-	STA ypos		; Sätt 80 som Y:s ursprungsvärde.
+    LDA #80
+    STA ypos                ; Sätt 80 som Y:s ursprungsvärde.
 
-	LDA #$20		; Sätt missile0:s bredd till 4x
-	STA NUSIZ0		;
+    LDA #$20                ; Sätt missile0:s bredd till 4x
+    STA NUSIZ0              ;
 
 Main:
 
@@ -59,118 +59,120 @@ Main:
 ; 0010 (2) -> VSYNC.
 
     LDA #2
-    STA VSYNC   	;; --- BEGIN VSYNC --- ;;
+    STA VSYNC               ;; --- BEGIN VSYNC --- ;;
 
-    STA WSYNC   	; VSYNC är 3 scanlines lång. Vänta på 3 HBLANK.
-    STA WSYNC   	; Det här är egentligen slöseri med tid --
-    STA WSYNC   	; man kan fylla på med logik här.
+    STA WSYNC               ; VSYNC är 3 scanlines lång. Vänta på 3 HBLANK.
+    STA WSYNC               ; Det här är egentligen slöseri med tid --
+    STA WSYNC               ; man kan fylla på med logik här.
 
 
     LDA #43
     STA TIM64T
 
     LDA #0
-    STA VSYNC   	;; ---- END VSYNC ---- ;;
+    STA VSYNC               ;; ---- END VSYNC ---- ;;
 
 ;; ---- Kontroll ---- ;;
-JoyDown: 			; Kolla SWCHA om spaken hålls neråt
-	LDA #%00010000
-	BIT SWCHA
-	BNE JoyUp		; Om inte - kolla om den hålls upp
-	INC ypos
+JoyDown:                    ; Kolla SWCHA om spaken hålls neråt
+    LDA #%00010000
+    BIT SWCHA
+    BNE JoyUp               ; Om inte - kolla om den hålls upp
+    INC ypos
 
-JoyUp: 				; Kolla SWCHA om spaken hålls uppåt
-	LDA #%00100000
-	BIT SWCHA
-	BNE JoyLeft
-	DEC ypos
+JoyUp:                      ; Kolla SWCHA om spaken hålls uppåt
+    LDA #%00100000
+    BIT SWCHA
+    BNE JoyLeft
+    DEC ypos
 
-	LDX #0
+    LDX #0
 JoyLeft:
-	LDA #%01000000
-	BIT SWCHA
-	BNE JoyRight
-	LDX	#$10			; 1 i vänster nibble av HMM0 innebär gå vänster
+    LDA #%01000000
+    BIT SWCHA
+    BNE JoyRight
+    LDX #$10                ; 1 i vänster nibble av HMM0 innebär gå vänster
 
 JoyRight:
-	LDA #%10000000
-	BIT SWCHA
-	BNE UpdateMovement 	; Om kontrollen inte häller pekar åt höger, hoppa till
-						; UpdateMovement utan förändring.
-	LDX #$F0			; -1 (2-komplement) innebär gå höger
+    LDA #%10000000
+    BIT SWCHA
+    BNE UpdateMovement      ; Om kontrollen inte häller pekar åt höger, hoppa
+                            ; till UpdateMovement utan förändring.
+    LDX #$F0                ; -1 (2-komplement) innebär gå höger
 
 UpdateMovement:
 
-	STX HMM0		; Verkställ missile 0:s rörelse.
+    STX HMM0                ; Verkställ missile 0:s rörelse.
 
 
 ;; --- Byt bakgrund om knappen trycks ner --- ;;
-	LDA INPT4
-	BMI SkipButton
-	LDA ypos		; Ta värdet från ypos
-	STA COLUBK		; ha det som bakgrundsfärg.
+    LDA INPT4
+    BMI SkipButton
+    LDA ypos                ; Ta värdet från ypos
+    STA COLUBK              ; ha det som bakgrundsfärg.
 SkipButton:
 
 Vblank:
 ; Vi måste vänta på att vblank ritats färdigt innan vi kan börja
 ; jobba mot skärmen.
 
-	LDA INTIM		; Läs från timern
-	BNE Vblank		; Vänta till timern är 0.
+    LDA INTIM               ; Läs från timern
+    BNE Vblank              ; Vänta till timern är 0.
 
-	LDY #191		; Vi sätter register Y till 191. Planen är att räkna
-					; ner den här efter varje scanline, för att hålla reda
-					; på hur många scanlines som är kvar att rita på.
+    LDY #191                ; Vi sätter register Y till 191.
+                            ; Planen är att räkna ner den här efter varje
+                            ; scanline, för att hålla reda på hur många
+                            ; scanlines som är kvar att rita på.
 
-	STA WSYNC
-	STA VBLANK		; Skriv 0 till VBLANK (A har värdet 0 eftersom BNE inte
-					; hade skickat hit oss om A inte har fått det värdet.
+    STA WSYNC
+    STA VBLANK              ; Skriv 0 till VBLANK
+                            ; A har värdet 0 eftersom BNE inte hade skickat hit
+                            ; oss om A inte har fått det värdet av LDA INTIM.
 
-	STA WSYNC		; Låt en hel linje ritas färdigt
-	STA HMOVE		; Sen sätter vi missile0 i rörelse.
+    STA WSYNC               ; Låt en hel linje ritas färdigt
+    STA HMOVE               ; Sen sätter vi missile0 i rörelse.
 
 Scanline:
 ;
 ; Här sker renderingslogiken för varje pixelrad på skärmen
 ;
-	STA WSYNC				; Vänta in att förra raden är klar
+    STA WSYNC               ; Vänta in att förra raden är klar
 
-CheckActivateMissile:		; Väntar till Y-registret, som håller reda på
-	CPY ypos				; vilken rad som renderas, kommer till missilens
-	BNE SkipActivateMissile	; y-position.
+CheckActivateMissile:       ; Väntar till Y-registret, som håller reda på
+    CPY ypos                ; vilken rad som renderas, kommer till missilens
+    BNE SkipActivateMissile ; y-position.
 
-	LDA #16					; Sen säger vi hur lång missile 0 ska vara i y-led
-	STA missile_height		; genom att spara värdet i visiblemisline variabeln.
+    LDA #16                 ; Sen säger vi hur lång missile 0 ska vara i y-led
+    STA missile_height      ; genom att spara värdet i visiblemisline variabeln.
 
 SkipActivateMissile:
-	LDA #0
-	STA ENAM0				; Se till att missile 0 är osynlig.
+    LDA #0
+    STA ENAM0               ; Se till att missile 0 är osynlig.
 
-	LDA missile_height		; Om height fortfarande är noll
-	BEQ FinishMissile		; struntar vi i renderingen.
+    LDA missile_height      ; Om height fortfarande är noll
+    BEQ FinishMissile       ; struntar vi i renderingen.
 
-IsMissileOn:				; Annars renderar vi missile 0
-	LDA #2
-	STA ENAM0
-	DEC missile_height		; Hela missilens y-höjd
+IsMissileOn:                ; Annars renderar vi missile 0
+    LDA #2
+    STA ENAM0
+    DEC missile_height      ; Hela missilens y-höjd
 
 FinishMissile:
 
-	DEY				; Räkna ner "radräknaren"
-	BNE Scanline	; Gör TIA output osynlig under overscantiden.
-					; (och vidare genom vsync och vblank)
+    DEY                     ; Räkna ner "radräknaren"
+    BNE Scanline            ; Gör TIA output osynlig under overscantiden.
+                            ; (och vidare genom vsync och vblank)
 
 
 ; Allt som visas på skärmen har renderats klart. Nu väntar vi på 30
 ; overscanrader.
-	LDX #30			; Ladda in #30 i X (antalet overscanrader)
+    LDX #30                 ; Ladda in #30 i X (antalet overscanrader)
 Overscan:
-	STA WSYNC		; Vänta på att strålen har passerat hela raden
-	DEX				; Räkna ner vilken overscanrad vi är på
-	BNE Overscan
+    STA WSYNC               ; Vänta på att strålen har passerat hela raden
+    DEX                     ; Räkna ner vilken overscanrad vi är på
+    BNE Overscan
 
-	JMP Main		; Hoppa till början igen.
+    JMP Main                ; Hoppa till början igen.
 
-	org $FFFC
-	.word Start
-	.word Start
+    org $FFFC
+    .word Start
+    .word Start
